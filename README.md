@@ -63,11 +63,5 @@ $ bazel mobile-install android_app --fat_apk_cpu=arm64-v8a --start_app
   hopefully it's in a release soon
 - When debugging `platform_mappings` issues,
   `--toolchain_resolution_debug='.*'` is verbose but very useful
-
-- When debugging toolchain issues with platforms, you likely need to
-
-- toolchain resolution debug
-- cargo raze
-- android sdk setup
-
-- supprot linux?
+- If you find any other interesting gotchas when setting this up please
+  submit an issue or PR here so we can document them for the community!
