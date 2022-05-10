@@ -1,3 +1,4 @@
+# Remove when on bazel 6.x
 --- rust/platform/triple_mappings.bzl
 +++ rust/platform/triple_mappings.bzl
 @@ -269,6 +269,13 @@ def triple_to_constraint_set(target_triple):

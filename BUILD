@@ -21,7 +21,7 @@ cc_binary(
 )
 
 #=== iOS targets
-# This being required is a bug in objc_library
+# This being required is a bug in objc_library, ideally 'ios_main' could depend directly on 'rust_lib'
 cc_library(
     name = "shim",
     deps = [":rust_lib"],
@@ -47,8 +47,8 @@ cc_library(
     name = "jni_shim",
     srcs = ["android_link_hack.c"],  # Required because of https://github.com/bazelbuild/rules_rust/issues/1271
     linkopts = [
-        "-lm",  # Required to avoid dlopen runtime failures
-        "-fuse-ld=lld",  # Work around https://github.com/bazelbuild/rules_rust/issues/1276
+        "-lm",  # Required to avoid dlopen runtime failures unrelated to rust
+        "-fuse-ld=lld",  # Work around https://github.com/bazelbuild/rules_rust/issues/1276, the default in newer NDK versions
     ],
     deps = [":rust_lib"],
     alwayslink = True,  # Required since JNI symbols appear to be unused

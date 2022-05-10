@@ -12,7 +12,7 @@ public class AndroidMain extends Activity {
     setContentView(R.layout.android_main);
 
     Log.v("Bazel", "Android app launched");
-    System.loadLibrary("android_app"); // 'android_app' is the name of the native library
+    System.loadLibrary("android_app"); // 'android_app' is the name of the native library in this example
     Log.v("Bazel", "Value from rust: " + JniShim.getValue());
 
     final TextView helloTextView = (TextView) findViewById(R.id.text_view);

@@ -56,7 +56,7 @@ $ bazel mobile-install android_app --fat_apk_cpu=arm64-v8a --start_app
   [cxx](https://github.com/dtolnay/cxx) which helps bridge between rust
   and C++
 - This example doesn't include it but using
-  [cargo-raze](https://github.com/google/cargo-raze/) works fine for
+  [cargo-raze](https://github.com/google/cargo-raze) works fine for
   rust dependencies from our testing
 - When using `cargo-raze` with the arm64 iOS simulator you need [this
   patch](https://github.com/google/cargo-raze/pull/484) for some cases,
