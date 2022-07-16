@@ -62,4 +62,4 @@ apple_support_dependencies()
 
 android_sdk_repository(name = "androidsdk")
 
-android_ndk_repository(name = "androidndk")
+android_ndk_repository(name = "androidndk", api_level=21)
