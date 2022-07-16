@@ -1,4 +1,5 @@
 load("@build_bazel_rules_apple//apple:ios.bzl", "ios_application")
+load("@build_bazel_rules_apple//apple:macos.bzl", "macos_application")
 load("@rules_rust//rust:defs.bzl", "rust_library")
 
 # Ideally this wouldn't be required https://github.com/bazelbuild/rules_rust/issues/1238
@@ -39,6 +40,14 @@ ios_application(
     families = ["iphone"],
     infoplists = ["Info.plist"],
     minimum_os_version = "13.0",
+    deps = [":ios_main"],
+)
+
+macos_application(
+    name = "macos_app",
+    bundle_id = "com.example.macosapp",
+    infoplists = ["Info.plist"],
+    minimum_os_version = "10.15",
     deps = [":ios_main"],
 )
 
