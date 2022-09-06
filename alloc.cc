@@ -30,4 +30,6 @@ void __attribute__((weak)) __rust_alloc_error_handler(size_t a, size_t b) {
   abort();
 }
 
+uint8_t __attribute__((weak)) __rust_alloc_error_handler_should_panic = 0;
+
 }  // extern "C"
