@@ -59,6 +59,18 @@ load(
 
 apple_support_dependencies()
 
-android_sdk_repository(name = "androidsdk")
+http_archive(
+    name = "rules_android_ndk",
+    sha256 = "3aa8d5801c2e6c6c86e2d3906685d8d00080c684a431ad7debcd2676a9cfb1f7",
+    strip_prefix = "rules_android_ndk-75bbbb74c934aa63cd901f2d039854a9927b99a7",
+    url = "https://github.com/bazelbuild/rules_android_ndk/archive/75bbbb74c934aa63cd901f2d039854a9927b99a7.zip",
+)
 
-android_ndk_repository(name = "androidndk", api_level=21)
+load("@rules_android_ndk//:rules.bzl", "android_ndk_repository")
+
+android_ndk_repository(
+    name = "androidndk",
+    api_level = 21,
+)
+
+android_sdk_repository(name = "androidsdk")
