@@ -1,7 +1,8 @@
 # bazel-rust-mobile-demo
 
 This is an example repository for how to setup a bazel build that uses
-rust on iOS and Android.
+rust on iOS and Android. I also did [a talk](https://www.youtube.com/watch?v=e2ID05dpJzo)
+on this at bazelcon.
 
 ## Usage
 
