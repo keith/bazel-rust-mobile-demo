@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Automatically setup jdk / android SDK for easy testing
+# This isn't required if you manage this another way in your project
+
+readonly jdk_version=21.0.10
+readonly zulu_version=21.48.17
+readonly major_java_version=21
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  arch="$(uname -m)"
+  if [[ "$arch" == arm64 ]]; then
+    readonly jdk_file_sha256="7c29d3232a163c366af3fda303bd54ffda22f41c16ba4c87f19b6adb91b1d232"
+    readonly jdk_file_url="https://cdn.azul.com/zulu/bin/zulu$zulu_version-ca-jdk$jdk_version-macosx_aarch64.tar.gz"
+  else
+    readonly jdk_file_sha256="0dc3de9c4de5fe732a09bafe2103687c365c904ab9542043e89c829dd49e9e28"
+    readonly jdk_file_url="https://cdn.azul.com/zulu/bin/zulu$zulu_version-ca-jdk$jdk_version-macosx_x64.tar.gz"
+  fi
+elif [[ "$OSTYPE" == linux-gnu ]]; then
+  readonly jdk_file_sha256="d9bcbea873e758c1282cccee2f73a0e733d23f054fc1b0f6a876169e73a28076"
+  readonly jdk_file_url="https://cdn.azul.com/zulu/bin/zulu$zulu_version-ca-jdk$jdk_version-linux_x64.tar.gz"
+else
+  echo "error: JDK $major_java_version setup doesn't support this OS: $OSTYPE" >&2
+  exit 1
+fi
+
+readonly jdk_root="/tmp/keith-jdk/$jdk_version"
+readonly jdk_marker_file="$jdk_root/marker-$jdk_file_sha256"
+
+if [[ ! -f "$jdk_marker_file" ]]; then
+  archive="$(mktemp)"
+  curl -o "$archive" --silent --fail "$jdk_file_url"
+  if ! echo "$jdk_file_sha256  $archive" | shasum --check --status; then
+    echo "error: jdk download sha mismatch" >&2
+    exit 1
+  fi
+
+  rm -rf "$jdk_root"
+  mkdir -p "$jdk_root"
+  tar -xf "$archive" -C "$jdk_root" --strip-components=1
+  touch "$jdk_marker_file"
+  rm -f "$archive"
+fi
+
+export JAVA_HOME="$jdk_root"
+if [[ "$OSTYPE" == darwin* ]]; then
+  export JAVA_HOME="$jdk_root/zulu-$major_java_version.jdk/Contents/Home"
+fi
+
+# https://stackoverflow.com/a/21106592/902968
+exec 6>&2
+exec 2> /tmp/android-stderr.log
+set -x
+
+readonly android_sdk_version="14742923"
+readonly android_sdk_license_hash="24333f8a63b6825ea9c5514f83c2829b004d1fee"
+
+if [[ "$OSTYPE" == darwin* ]]; then
+  readonly android_sdk_file_url="https://dl.google.com/android/repository/commandlinetools-mac-${android_sdk_version}_latest.zip"
+  readonly android_sdk_file_sha256="ed304c5ede3718541e4f978e4ae870a4d853db74af6c16d920588d48523b9dee"
+elif [[ "$OSTYPE" == linux-gnu ]]; then
+  readonly android_sdk_file_url="https://dl.google.com/android/repository/commandlinetools-linux-${android_sdk_version}_latest.zip"
+  readonly android_sdk_file_sha256="04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7"
+fi
+
+readonly android_sdk_root_dir="/tmp/androidbin/sdk"
+readonly android_sdk_unarchived_dir="$android_sdk_root_dir/android-sdk-$android_sdk_version-unarchived"
+readonly ndk_version="29.0.14206865"
+
+readonly sdkmanager="$android_sdk_unarchived_dir/cmdline-tools/latest/bin/sdkmanager"
+readonly install_android_sdk_packages_command=(
+  "$sdkmanager"
+  "--install"
+  "platform-tools"
+  "ndk;$ndk_version"
+  "platforms;android-35"
+  "build-tools;35.0.0"
+)
+
+install_android_sdk_packages_command_sha256=$(echo "${install_android_sdk_packages_command[@]}" | shasum -a 256 | cut -d " " -f1)
+readonly android_sdk_packages_cache_file="$android_sdk_unarchived_dir/$install_android_sdk_packages_command_sha256-installed-marker"
+
+if [[ ! -f "$android_sdk_packages_cache_file" ]]; then
+  rm -rf "$android_sdk_root_dir"
+  mkdir -p "$android_sdk_unarchived_dir"
+
+  file="$(mktemp)"
+  curl -o "$file" --silent --fail "$android_sdk_file_url"
+  if ! echo "$android_sdk_file_sha256  $file" | shasum --check --status; then
+    echo "error: android SDK download sha mismatch" >&2
+    exit 1
+  fi
+
+  unzip -q "$file" -d "$android_sdk_unarchived_dir"
+  rm -f "$file"
+
+  # The zip extracts to cmdline-tools/; sdkmanager expects it at cmdline-tools/latest/
+  mv "$android_sdk_unarchived_dir/cmdline-tools" "$android_sdk_unarchived_dir/cmdline-tools-tmp"
+  mkdir -p "$android_sdk_unarchived_dir/cmdline-tools"
+  mv "$android_sdk_unarchived_dir/cmdline-tools-tmp" "$android_sdk_unarchived_dir/cmdline-tools/latest"
+
+  mkdir -p "$android_sdk_unarchived_dir/licenses"
+  echo "$android_sdk_license_hash" > "$android_sdk_unarchived_dir/licenses/android-sdk-license"
+
+  JAVA_HOME="$JAVA_HOME" "${install_android_sdk_packages_command[@]}" | (grep -v = || true)
+
+  touch "$android_sdk_packages_cache_file"
+fi
+
+set +x
+# Restore stderr
+exec 2>&6 6>&-
+
+export ANDROID_HOME="$android_sdk_unarchived_dir"
+export ANDROID_NDK_HOME="$android_sdk_unarchived_dir/ndk/$ndk_version/"
+export PATH="$android_sdk_unarchived_dir/cmdline-tools/latest/bin:$android_sdk_unarchived_dir/platform-tools:$PATH"
+
+# --- Exec bazel ---
+exec "$BAZEL_REAL" "$@"

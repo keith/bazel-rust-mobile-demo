@@ -1,0 +1,7 @@
+# https://github.com/bazelbuild/rules_android/blob/2bd55f46dde5fe1020be9e1fb71619b93cd4a1b9/.bazelrc
+common --java_language_version=17
+common --java_runtime_version=17
+common --tool_java_language_version=17
+common --tool_java_runtime_version=17
+
+build --android_platforms=@rules_android//:armeabi-v7a,@rules_android//:arm64-v8a,@rules_android//:x86,@rules_android//:x86_64

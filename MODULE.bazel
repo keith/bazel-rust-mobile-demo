@@ -1,0 +1,89 @@
+module(
+    name = "bazel_rust_mobile_demo",
+    version = "0",
+)
+
+bazel_dep(name = "apple_support", version = "2.3.0")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_android", version = "0.7.1")
+bazel_dep(name = "rules_android_ndk", version = "0.1.3")
+bazel_dep(name = "rules_apple", version = "4.5.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "rules_rust", version = "0.69.0")
+bazel_dep(name = "rules_swift", version = "3.5.0")
+
+# TODO: Remove when >0.1.3 is released
+git_override(
+    module_name = "rules_android_ndk",
+    commit = "ad201775420bbc8ee4c264c533bd7bc40ac11045",
+    remote = "https://github.com/bazelbuild/rules_android_ndk.git",
+)
+
+# Rust toolchains
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    extra_target_triples = [
+        "aarch64-apple-ios-sim",
+        "aarch64-apple-ios",
+        "aarch64-linux-android",
+        "armv7-linux-androideabi",
+        "i686-linux-android",
+        "x86_64-apple-ios",
+        "x86_64-linux-android",
+    ],
+    versions = ["1.94.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+android_ndk_repository_extension = use_extension(
+    "@rules_android_ndk//:extension.bzl",
+    "android_ndk_repository_extension",
+)
+use_repo(android_ndk_repository_extension, "androidndk")
+
+register_toolchains("@androidndk//:all")
+
+remote_android_extensions = use_extension(
+    "@rules_android//bzlmod_extensions:android_extensions.bzl",
+    "remote_android_tools_extensions",
+)
+use_repo(remote_android_extensions, "android_tools")
+
+android_sdk_repository_extension = use_extension(
+    "@rules_android//rules/android_sdk_repository:rule.bzl",
+    "android_sdk_repository_extension",
+)
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+# Workaround for https://github.com/bazelbuild/rules_android/issues/467
+# rules_android pins protobuf-java 4.33.4 via Maven but protobuf 34.0 gencode requires 4.34.0
+bazel_dep(name = "rules_jvm_external", version = "6.10")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "android_ide_common_30_1_3",
+    artifacts = [
+        "com.google.protobuf:protobuf-java:4.34.0",
+        "com.google.protobuf:protobuf-java-util:4.34.0",
+    ],
+    known_contributing_modules = ["rules_android"],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+maven.install(
+    name = "rules_android_maven",
+    artifacts = [
+        "com.google.protobuf:protobuf-java:4.34.0",
+        "com.google.protobuf:protobuf-java-util:4.34.0",
+    ],
+    known_contributing_modules = ["rules_android"],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
