@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 
 // Instead of doing this manually https://github.com/dtolnay/cxx could be used for complex examples

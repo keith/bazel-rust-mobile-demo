@@ -2,12 +2,12 @@
 pub extern "C" fn android_link_hack() {}
 
 #[no_mangle]
-pub extern fn print_something_from_rust() {
+pub extern "C" fn print_something_from_rust() {
     println!("Ferris says hello!");
 }
 
 #[no_mangle]
-pub extern fn get_a_value_from_rust() -> i32 {
+pub extern "C" fn get_a_value_from_rust() -> i32 {
     42
 }
 

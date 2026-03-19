@@ -32,37 +32,25 @@ For an `android_application` (requires the android SDK and an emulator
 to be configured):
 
 ```sh
-$ bazel mobile-install android_app --fat_apk_cpu=arm64-v8a --start_app
+$ bazel mobile-install android_app
 # View the result in the emulator, or view logs with 'adb logcat'
 ```
 
 ## Notes
 
-- At the time of writing this setup was tested with bazel 5.1.1
-- The key to targeting the right platforms until the iOS and Android
-  rules natively support bazel platforms is the
-  [`platform_mappings`](platform_mappings) file, and the `platform`
-  rules in the [`BUILD`](BUILD) file
-  ([docs](https://bazel.build/concepts/platforms-intro#platform-mappings))
-- If you don't want to use a root `platform_mappings` file you can pass
-  `--platform_mappings=path/to/platform_mappings`
-- The `rules_rust` patch, and `android_armeabi` platform definition will
-  change with bazel 6.x since
-  https://github.com/bazelbuild/bazel/issues/14982 was fixed
+- At the time of writing this setup was tested with bazel 9.0.1
 - When testing Android, depending on your emulator or device you can
-  pass whatever `--fat_apk_cpu` value you need
+  pass whatever `--android_platforms` value you need
 - When testing with iOS you can pass whatever `--ios_multi_cpus` value
   you need
 - When using something like this in production you should checkout
   [cxx](https://github.com/dtolnay/cxx) which helps bridge between rust
   and C++
-- This example doesn't include it but using
-  [cargo-raze](https://github.com/google/cargo-raze) works fine for
-  rust dependencies from our testing
-- When using `cargo-raze` with the arm64 iOS simulator you need [this
-  patch](https://github.com/google/cargo-raze/pull/484) for some cases,
-  hopefully it's in a release soon
-- When debugging `platform_mappings` issues,
+- This example doesn't include rust dependency management, but
+  [`crate_universe` in
+  `rules_rust`](https://bazelbuild.github.io/rules_rust/crate_universe_bzlmod.html)
+  can be used with this.
+- When debugging which C++ compiler is being used
   `--toolchain_resolution_debug='.*'` is verbose but very useful
 - If you find any other interesting gotchas when setting this up please
   submit an issue or PR here so we can document them for the community!
