@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Wednesdays at 7:00 AM PST (15:00 UTC).
+    - cron: "0 15 * * 3"
 
 jobs:
   build-host:
@@ -14,6 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Use latest Bazel on weekly runs
+        if: github.event_name == 'schedule'
+        run: echo "USE_BAZEL_VERSION=latest" >> "$GITHUB_ENV"
       - name: Build host binary
         run: bazelisk run //:normal_binary
 
@@ -21,6 +27,9 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Use latest Bazel on weekly runs
+        if: github.event_name == 'schedule'
+        run: echo "USE_BAZEL_VERSION=latest" >> "$GITHUB_ENV"
       - name: Build iOS app
         run: bazelisk build //:ios_app
       - name: Build macOS app
@@ -30,5 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Use latest Bazel on weekly runs
+        if: github.event_name == 'schedule'
+        run: echo "USE_BAZEL_VERSION=latest" >> "$GITHUB_ENV"
       - name: Build Android
         run: bazelisk build //:android_app
