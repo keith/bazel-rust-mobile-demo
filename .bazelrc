@@ -1,3 +1,5 @@
+common --module_mirrors=https://bcr.cloudflaremirrors.com
+
 # https://github.com/bazelbuild/rules_android/blob/2bd55f46dde5fe1020be9e1fb71619b93cd4a1b9/.bazelrc
 common --java_language_version=17
 common --java_runtime_version=17
